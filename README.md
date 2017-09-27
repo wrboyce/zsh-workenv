@@ -31,9 +31,7 @@ one argument, the name of the working directory to activate.
 During activation the following scripts are sourced:
 
 1. `${WENV_HOME}/activate` (see `${WENV_GLOBALS}`)
-2. `${WORK_ENV}/preactivate`
-3. `${WORK_ENV}/activate`
-4. `${WORK_ENV}/postactivate`
+2. `${WORK_ENV}/activate`
 
 After activation the following aliases and variables are available:
 
@@ -90,10 +88,8 @@ the current virtual env name.
 
 During deactivation the following scripts are sourced:
 
-1. `${WORK_ENV}/predeactivate`
-2. `${WORK_ENV}/deactivate`
-3. `${WORK_ENV}/postdeactivate`
-4. `${WENV_HOME}/deactivate` (see `${WENV_GLOBALS}`)
+1. `${WORK_ENV}/deactivate`
+2. `${WENV_HOME}/deactivate` (see `${WENV_GLOBALS}`)
 
 ### `WENV_SHORTCUTS`
 

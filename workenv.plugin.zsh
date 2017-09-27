@@ -22,14 +22,20 @@ mkwenv () {
         echo "ERROR: Environment '${wenv_name}' already exists. Activate it with 'wenv ${wenv_name}'" >&2
         return 1
     fi
-    if [ "${wenv_proj}" != "" ] && ! test -d "${wenv_proj}"; then
+    if test -n "${wenv_proj}" && ! test -d "${wenv_proj}"; then
         echo "ERROR: Cannot associate project with ${wenv_proj}, it is not a directory" >&2
         return 1
     fi
+
+    # if a template is provided, start by cloning it
     test -n "${WENV_TEMPLATE}" && git clone "${WENV_TEMPLATE}" "${wenv_dir}"
+    # create the base skeleton work env
     mkdir -p "${WENV_HOME}/${wenv_name}/bin"
     touch "${wenv_dir}/activate" "${wenv_dir}/deactivate"
-    [ "${wenv_proj}" != "" ] && echo "${wenv_proj}" > "${wenv_dir}/.project"
+    # setup the project if provided
+    test -n "${wenv_proj}" && echo "${wenv_proj}" > "${wenv_dir}/.project"
+
+    # activate the new work env
     wenv "${wenv_name}"
     return $?
 }
@@ -46,25 +52,30 @@ wenv () {
         echo "ERROR: Environment '${wenv_name}' does not exist. Create it with 'mkwenv ${wenv_name}'" >&2
         return 1
     fi
+
+    # setup base environment variables
+    export WORK_ENV="${wenv_dir}"
+    export WENV_NAME="${wenv_name}"
+    test -r "${wenv_dir}/.project" && export WENV_PROJ="$(cat "${wenv_dir}/.project")"
+    [ "${WENV_HIJACK_VIRTUALENV}" = "true" ] && export VIRTUAL_ENV="${wenv_dir}"
+    # global activate, if using
     if [ "${WENV_GLOBALS}" = "true" ]; then
         local wenv_global_src="${WENV_HOME}/activate"
         test -r "${wenv_global_src}" && source "${wenv_global_src}"
     fi
-    export WORK_ENV="${wenv_dir}"
-    test -r "${wenv_dir}/.project" && export WENV_PROJ="$(cat "${wenv_dir}/.project")"
-    [ "${WENV_HIJACK_VIRTUALENV}" = "true" ] && export VIRTUAL_ENV="${wenv_dir}"
+    # setup aliases
     alias cdworkenv="cd ${WORK_ENV}"
+    alias deactivate=wenv_deactivate
     [ "${WENV_SHORTCUTS}" = "true" ] && alias cdw=cdworkenv
     if test -d "${WENV_PROJ}"; then
         alias cdproject="cd ${WENV_PROJ}"
         [ "${WENV_SHORTCUTS}" = "true" ] && alias cdp=cdproject
         [ "${WENV_AUTOCD}" = "true" ] && cd "${WENV_PROJ}"
     fi
+    # update PATH
     export PATH="${wenv_dir}/bin:${PATH}"
-    test -r "${wenv_dir}/preactivate" && source "${wenv_dir}/preactivate"
+    # workenv activate script
     test -r "${wenv_dir}/activate" && source "${wenv_dir}/activate"
-    test -r "${wenv_dir}/postactivate" && source "${wenv_dir}/postactivate"
-    alias deactivate=wenv_deactivate
     return 0
 }
 
@@ -80,29 +91,32 @@ rmwenv () {
         echo "ERROR: Environment '${wenv_name}' does not exist."
         return 1
     fi
-    rm -rfv "${wenv_dir}"
+    if test -z "${WENV_HOME}"; then
+        echo 'PANIC: `WENV_HOME` is not set, refusing to proceed.'
+        return 1
+    fi
+
+    rm -rf "${wenv_dir}"
 }
 
 # deactivate the current workenv, aliased to `deactivate` when available
 wenv_deactivate () {
-    test -r "${WORK_ENV}/predeactivate" && source "${WORK_ENV}/predeactivate"
     test -r "${WORK_ENV}/deactivate" && source "${WORK_ENV}/deactivate"
-    test -r "${WORK_ENV}/postdeactivate" && source "${WORK_ENV}/postdeactivate"
     if [ "${WENV_GLOBALS}" = "true" ]; then
         local wenv_global_unsrc="${WENV_HOME}/deactivate"
         test -r "${wenv_global_unsrc}" && source "${wenv_global_unsrc}"
     fi
-    unalias cdworkenv
-    test -n "${WENV_PROJ}" && unalias cdproject
-    if [ "${WENV_SHORTCUTS}" = "true" ]; then
-        unalias cdw
-        test -n "${WENV_PROJ}" && unalias cdp
+    [ "${WENV_SHORTCUTS}" = "true" ] && unalias cdp
+    if test -n "${WENV_PROJ}"; then
+        [ "${WENV_SHORTCUTS}" = "true" ] && unalias cdp
+        unalias cdproject
     fi
+    unalias cdworkenv
+    unalias deactivate
     export PATH="${PATH##"${WORK_ENV}/bin:"}"
-    unset WORK_ENV
     [ "${WENV_HIJACK_VIRTUALENV}" = "true" ] && unset VIRTUAL_ENV
     unset WENV_PROJ
-    unalias deactivate
+    unset WORK_ENV
 }
 
 # setup function shortcuts
