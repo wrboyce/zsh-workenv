@@ -79,6 +79,21 @@ wenv () {
     return 0
 }
 
+# update active workenv from git template
+wenv_update () {
+    if test -z "${WORK_ENV}"; then
+        echo "ERROR: Must be called from an active working environment" >&2
+        return 1
+    fi
+    if ! test -d "${WORK_ENV}/.git"; then
+        echo "ERROR: Current working environment has no template" >&2
+        return 1
+    fi
+
+    git -C "${WORK_ENV}" pull origin master -q
+    return $?
+}
+
 # remove a workenv, never a project directory
 rmwenv () {
     local wenv_name=$1
