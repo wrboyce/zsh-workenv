@@ -126,7 +126,6 @@ wenv_deactivate () {
         local wenv_global_unsrc="${WENV_HOME}/deactivate"
         test -r "${wenv_global_unsrc}" && source "${wenv_global_unsrc}"
     fi
-    [ "${WENV_SHORTCUTS}" = "true" ] && unalias cdp
     if test -n "${WENV_PROJ}"; then
         [ "${WENV_SHORTCUTS}" = "true" ] && unalias cdp
         unalias cdproject
