@@ -35,6 +35,11 @@ mkwenv () {
     # setup the project if provided
     test -n "${wenv_proj}" && echo "${wenv_proj}" > "${wenv_dir}/.project"
 
+    # run the postmake hook if present
+    WORK_ENV="${wenv_dir}"
+    WENV_NAME="${wenv_name}"
+    test -n "${wenv_dir}/postmake" && source "${wenv_dir}/postmake"
+
     # activate the new work env
     wenv "${wenv_name}"
     return $?
