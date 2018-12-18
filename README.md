@@ -1,4 +1,6 @@
 # zsh-workenv
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fwrboyce%2Fzsh-workenv.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fwrboyce%2Fzsh-workenv?ref=badge_shield)
+
 
 A set of simple shell functions for handling different working environments.
 
@@ -110,3 +112,7 @@ Default: `none`
 
 Used by `mkwenv`, if set will be cloned into `${WENV_HOME}` as a basis for new
 working environments.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fwrboyce%2Fzsh-workenv.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fwrboyce%2Fzsh-workenv?ref=badge_large)
