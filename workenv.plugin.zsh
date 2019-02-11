@@ -138,9 +138,17 @@ wenv_deactivate () {
     unset WORK_ENV
 }
 
+# `wenv` completion function, list all known envs
+_wenv () {
+    local envs=(${$(find "${WENV_HOME}" -type d -mindepth 1 -maxdepth 1):t})
+    _values 'workenv' ${envs}
+}
+compdef _wenv wenv
+
 # setup function shortcuts
 if [ "${WENV_SHORTCUTS}" = "true" ]; then
     alias mkwe=mkwenv
     alias we=wenv
+    compdef we=wenv
     alias rmwe=rmwenv
 fi
