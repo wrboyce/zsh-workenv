@@ -5,7 +5,7 @@ WENV_HOME="${WENV_HOME-${HOME}/.workenvs}"
 WENV_CONFIG="${WENV_CONFIG-${WENV_HOME}/config}"
 test -r "${WENV_CONFIG}" && source "${WENV_CONFIG}"
 WENV_GLOBALS="${WENV_GLOBALS-true}"
-WENV_AUTOCD="${WENV_AUTOCD-true}"
+WENV_AUTOCD="${WENV_AUTOCD-auto}"  # always, auto, never
 WENV_HIJACK_VIRTUALENV="${WENV_HIJACK_VIRTUALENV-false}"
 WENV_SHORTCUTS="${WENV_SHORTCUTS-true}"
 
@@ -75,7 +75,9 @@ wenv () {
     if test -d "${WENV_PROJ}"; then
         alias cdproject="cd ${WENV_PROJ}"
         [ "${WENV_SHORTCUTS}" = "true" ] && alias cdp=cdproject
-        [ "${WENV_AUTOCD}" = "true" ] && cd "${WENV_PROJ}"
+        if [ "${WENV_AUTOCD}" = "always" ] || ([ "${WENV_AUTOCD}" = "auto" ] && [ "${PWD##${WENV_PROJ}}" = "${PWD}" ]); then
+            cd "${WENV_PROJ}"
+        fi
     fi
     # update PATH
     export PATH="${wenv_dir}/bin:${PATH}"
