@@ -142,8 +142,8 @@ wenv_deactivate () {
 
 # `wenv` completion function, list all known envs
 _wenv () {
-    local envs=(${$(find "${WENV_HOME}" -type d -mindepth 1 -maxdepth 1):t})
-    _values 'workenv' ${envs}
+    local envs=("${WENV_HOME}"/^_*(N))
+    _values 'workenv' ${envs:t}
 }
 compdef _wenv wenv
 
