@@ -30,7 +30,7 @@ mkwenv () {
     # if a template is provided, start by cloning it
     test -n "${WENV_TEMPLATE}" && git clone "${WENV_TEMPLATE}" "${wenv_dir}"
     # create the base skeleton work env
-    mkdir -p "${WENV_HOME}/${wenv_name}/bin"
+    mkdir -p "${WENV_HOME}/${wenv_name}/{bin,functions}"
     touch "${wenv_dir}/activate" "${wenv_dir}/deactivate"
     # setup the project if provided
     test -n "${wenv_proj}" && echo "${wenv_proj}" > "${wenv_dir}/.project"
@@ -79,8 +79,12 @@ wenv () {
             cd "${WENV_PROJ}"
         fi
     fi
+    # autoload env functions
+    fpath+=("${WORK_ENV}"/functions)
+    __functions=("${WORK_ENV}"/functions/*(N))
+    (( ${#__functions[@]} )) && autoload -Uz "${__functions[@]:t}"
     # update PATH
-    export PATH="${wenv_dir}/bin:${PATH}"
+    path=("${wenv_dir}/bin:${PATH}" "${path[@]}")
     # workenv activate script
     test -r "${wenv_dir}/activate" && source "${wenv_dir}/activate"
     return 0
@@ -134,7 +138,11 @@ wenv_deactivate () {
     fi
     unalias cdworkenv
     unalias deactivate
-    export PATH="${PATH##"${WORK_ENV}/bin:"}"
+    path=( "${(@)path:#"${WORK_ENV}"/*}" )
+    # unload functions
+    __functions=("${WORK_ENV}"/functions/*(N))
+    (( ${#__functions[@]} )) && unset -f "${__functions[@]:t}" 2>/dev/null
+    fpath=( "${(@)fpath:#"${WORK_ENV}"/*}" )
     [ "${WENV_HIJACK_VIRTUALENV}" = "true" ] && unset VIRTUAL_ENV
     unset WENV_PROJ
     unset WORK_ENV
