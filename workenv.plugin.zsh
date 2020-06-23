@@ -11,24 +11,36 @@ WENV_SHORTCUTS="${WENV_SHORTCUTS-true}"
 
 # create a workenv with an optional project directory
 mkwenv () {
-    local wenv_name=$1
-    local wenv_proj=$2
+    local template="${WENV_TEMPLATE}"
+    while getopts t: opt; do
+        case "${opt}" in
+            t) template="${OPTARG}" ;;
+            h)
+                echo >&2 "Usage: $0 [-t template] name [project dir]"
+                return 1
+                ;;
+        esac
+    done
+    shift $((OPTIND-1))
+
+    local wenv_name="$1"
+    local wenv_proj="$2"
     local wenv_dir="${WENV_HOME}/${wenv_name}"
     if test -z "${wenv_name}"; then
-        echo "USAGE: $0 <wenv_name> [proj_dir]" >&2
+        echo >&2 "Usage: $0 [-t template] name [project dir]"
         return 1
     fi
     if test -d "${wenv_dir}"; then
-        echo "ERROR: Environment '${wenv_name}' already exists. Activate it with 'wenv ${wenv_name}'" >&2
+        echo >&2 "ERROR: Environment '${wenv_name}' already exists. Activate it with 'wenv ${wenv_name}'"
         return 1
     fi
     if test -n "${wenv_proj}" && ! test -d "${wenv_proj}"; then
-        echo "ERROR: Cannot associate project with ${wenv_proj}, it is not a directory" >&2
+        echo >&2 "ERROR: Cannot associate project with ${wenv_proj}, it is not a directory"
         return 1
     fi
 
     # if a template is provided, start by cloning it
-    test -n "${WENV_TEMPLATE}" && git clone "${WENV_TEMPLATE}" "${wenv_dir}"
+    test -n "${template}" && git clone "${template}" "${wenv_dir}"
     # create the base skeleton work env
     mkdir -p "${WENV_HOME}/${wenv_name}/{bin,functions}"
     touch "${wenv_dir}/activate" "${wenv_dir}/deactivate"
@@ -47,7 +59,7 @@ mkwenv () {
 
 # activate a workenv
 wenv () {
-    local wenv_name=$1
+    local wenv_name="$1"
     local wenv_dir="${WENV_HOME}/${wenv_name}"
     if test -z "${wenv_name}"; then
         echo "USAGE: $0 <wenv_name>" >&2
@@ -107,7 +119,7 @@ wenv_update () {
 
 # remove a workenv, never a project directory
 rmwenv () {
-    local wenv_name=$1
+    local wenv_name="$1"
     local wenv_dir="${WENV_HOME}/${wenv_name}"
     if test -z "${wenv_name}"; then
         echo "USAGE: $0 <wenv_name>" >&2
