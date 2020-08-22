@@ -54,7 +54,7 @@ mkwenv () {
     # run the postmake hook if present
     WORK_ENV="${wenv_dir}"
     WENV_NAME="${wenv_name}"
-    test -n "${wenv_dir}/postmake" && source "${wenv_dir}/postmake"
+    test -f "${wenv_dir}/postmake" && source "${wenv_dir}/postmake"
 
     # activate the new work env
     wenv "${wenv_name}"
@@ -81,7 +81,7 @@ wenv () {
     # global activate, if using
     if [ "${WENV_GLOBALS}" = "true" ]; then
         local wenv_global_src="${WENV_HOME}/activate"
-        test -r "${wenv_global_src}" && source "${wenv_global_src}"
+        test -f "${wenv_global_src}" && source "${wenv_global_src}"
     fi
     # setup aliases
     alias cdworkenv="cd ${WORK_ENV}"
