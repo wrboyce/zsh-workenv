@@ -6,8 +6,12 @@ WENV_CONFIG="${WENV_CONFIG-${WENV_HOME}/config}"
 test -r "${WENV_CONFIG}" && source "${WENV_CONFIG}"
 WENV_GLOBALS="${WENV_GLOBALS-true}"
 WENV_AUTOCD="${WENV_AUTOCD-auto}"  # always, auto, never
-WENV_HIJACK_VIRTUALENV="${WENV_HIJACK_VIRTUALENV-false}"
 WENV_SHORTCUTS="${WENV_SHORTCUTS-true}"
+
+prompt_workenv() {
+    [ -z "${WENV_NAME}" ] && return
+    p10k segment -f 37 -t "${WENV_NAME}" -i ""
+}
 
 # create a workenv with an optional project directory
 mkwenv () {
@@ -74,7 +78,6 @@ wenv () {
     export WORK_ENV="${wenv_dir}"
     export WENV_NAME="${wenv_name}"
     test -r "${wenv_dir}/.project" && export WENV_PROJ="$(cat "${wenv_dir}/.project")"
-    [ "${WENV_HIJACK_VIRTUALENV}" = "true" ] && export VIRTUAL_ENV="${wenv_dir}"
     # global activate, if using
     if [ "${WENV_GLOBALS}" = "true" ]; then
         local wenv_global_src="${WENV_HOME}/activate"
@@ -155,7 +158,7 @@ wenv_deactivate () {
     __functions=("${WORK_ENV}"/functions/*(N))
     (( ${#__functions[@]} )) && unset -f "${__functions[@]:t}" 2>/dev/null
     fpath=( "${(@)fpath:#"${WORK_ENV}"/*}" )
-    [ "${WENV_HIJACK_VIRTUALENV}" = "true" ] && unset VIRTUAL_ENV
+    unset WENV_NAME
     unset WENV_PROJ
     unset WORK_ENV
 }
